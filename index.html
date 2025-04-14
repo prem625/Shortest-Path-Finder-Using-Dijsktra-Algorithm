@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odisha Route Explorer - Dijkstra Algorithm</title>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: #F97316;
+            color: white;
+            padding: 16px 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        header p {
+            font-size: 14px;
+        }
+        
+        main {
+            padding: 24px 0;
+        }
+        
+        .layout-container {
+            display: flex;
+            gap: 24px;
+        }
+        
+        /* Panels */
+        .map-panel {
+            flex: 3;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px;
+        }
+        
+        .control-panel {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px;
+        }
+        
+        h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #000080;
+        }
+        
+        /* Map Elements */
+        #map-container {
+            position: relative;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .node {
+            fill: #F97316;
+            stroke: #CC5500;
+            stroke-width: 2px;
+            cursor: pointer;
+            transition: fill 0.3s;
+        }
+        
+        .node:hover {
+            fill: #0EA5E9;
+        }
+        
+        .node.selected {
+            fill: #0EA5E9;
+        }
+        
+        .node.path {
+            fill: #000080;
+        }
+        
+        .edge {
+            stroke: #CC5500;
+            stroke-width: 2px;
+            transition: stroke 0.3s, stroke-width 0.3s;
+        }
+        
+        .edge.path {
+            stroke: #000080;
+            stroke-width: 4px;
+        }
+        
+        .node-label {
+            font-size: 10px;
+            text-anchor: middle;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        
+        .distance-label {
+            font-size: 10px;
+            fill: #333;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip.visible {
+            opacity: 1;
+        }
+        
+        /* Form Elements */
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .primary-button {
+            background-color: #0EA5E9;
+            color: white;
+            border: none;
+        }
+        
+        .secondary-button {
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .small-button {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+        
+        /* Algorithm Steps */
+        #algorithm-steps {
+            max-height: 240px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        
+        .algorithm-step {
+            margin-bottom: 8px;
+            padding: 8px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            border-left: 4px solid #F97316;
+        }
+        
+        .current-step {
+            border-left-color: #0EA5E9;
+            background-color: #e6f7ff;
+        }
+        
+        /* Results */
+        #results {
+            font-size: 14px;
+        }
+        
+        #results h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            margin-top: 16px;
+        }
+        
+        #results h3:first-child {
+            margin-top: 0;
+        }
+        
+        /* About Section */
+        .about-section {
+            margin-top: 32px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 24px;
+        }
+        
+        .about-section p {
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .about-section p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 16px 0;
+            margin-top: 32px;
+            text-align: center;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .layout-container {
+                flex-direction: column;
+            }
+            
+            .map-panel, .control-panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Odisha Route Explorer</h1>
+            <p>Dijkstra's Algorithm Visualization for Route Planning</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="layout-container">
+                <!-- Map Panel -->
+                <div class="map-panel">
+                    <h2>Route Map</h2>
+                    <div id="map-container">
+                        <svg id="route-map"></svg>
+                        <div id="tooltip" class="tooltip"></div>
+                    </div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="control-panel">
+                    <div class="panel">
+                        <h2>Route Selection</h2>
+                        
+                        <label for="source-select">Source Location:</label>
+                        <select id="source-select">
+                            <option value="">Select source</option>
+                        </select>
+                        
+                        <label for="target-select">Destination Location:</label>
+                        <select id="target-select">
+                            <option value="">Select destination</option>
+                        </select>
+                        
+                        <div style="display: flex; gap: 8px;">
+                            <button id="calculate-button" class="primary-button" disabled>Calculate Shortest Path</button>
+                            <button id="reset-button" class="secondary-button">Reset</button>
+                        </div>
+                    </div>
+                    
+                    <div class="panel">
+                        <h2>Results</h2>
+                        <div id="results"></div>
+                    </div>
+                    
+                    <div class="panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h2 style="margin-bottom: 0;">Algorithm Steps</h2>
+                            <div>
+                                <button id="step-button" class="primary-button small-button" disabled>Next Step</button>
+                                <button id="auto-button" class="primary-button small-button" disabled>Auto Play</button>
+                            </div>
+                        </div>
+                        <div id="algorithm-steps"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-section">
+                <h2>About Dijkstra's Algorithm</h2>
+                <p>
+                    Dijkstra's algorithm is a popular pathfinding algorithm used to find the shortest path between nodes in a graph.
+                    It was conceived by computer scientist Edsger W. Dijkstra in 1956 and published three years later.
+                </p>
+                <p>
+                    The algorithm works by keeping track of the currently known shortest distance from the starting node to all other nodes
+                    and updating these values as shorter paths are found. It visits the unvisited node with the smallest distance, 
+                    calculates the distance through it to each unvisited neighbor, and updates the neighbor's distance if smaller.
+                </p>
+                <p>
+                    This implementation demonstrates how Dijkstra's algorithm can be applied to route planning in a public transportation network
+                    across different locations in Odisha, India.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2025 Odisha Route Explorer | Dijkstra Algorithm Implementation</p>
+        </div>
+    </footer>
+
+    <script>
+        // Nodes (locations) and edges (connections between locations) for Odisha route planning
+        const nodes = [
+            { id: 'MASTER-CANTEEN', x: 300, y: 200 },
+            { id: 'EKAMRA-KSHETRA', x: 400, y: 150 },
+            { id: 'BARAMUNDA', x: 200, y: 150 },
+            { id: 'KHANDAGIRI', x: 150, y: 200 },
+            { id: 'BADAGADA', x: 350, y: 250 },
+            { id: 'CUTTACK', x: 500, y: 200 },
+            { id: 'FIRE-STATION', x: 250, y: 250 },
+            { id: 'CRPF', x: 450, y: 250 },
+            { id: 'VANI-VIHAR', x: 400, y: 300 },
+            { id: 'RAM-MANDIR', x: 300, y: 350 },
+            { id: 'KHORDHA', x: 500, y: 350 },
+            { id: 'GANDAPADA', x: 200, y: 350 },
+            { id: 'TANGI', x: 450, y: 400 },
+            { id: 'NACHUNI', x: 350, y: 450 },
+            { id: 'NAYAGARH', x: 250, y: 400 },
+            { id: 'KANKADA-HADA', x: 150, y: 450 },
+            { id: 'MENDHA-SALA', x: 550, y: 450 },
+            { id: 'DUMDUMA', x: 450, y: 150 }
+        ];
+
+        // Edges with distances (in km)
+        const edges = [
+            { source: 'MASTER-CANTEEN', target: 'EKAMRA-KSHETRA', distance: 5 },
+            { source: 'MASTER-CANTEEN', target: 'BARAMUNDA', distance: 7 },
+            { source: 'MASTER-CANTEEN', target: 'FIRE-STATION', distance: 3 },
+            { source: 'MASTER-CANTEEN', target: 'BADAGADA', distance: 4 },
+            { source: 'EKAMRA-KSHETRA', target: 'DUMDUMA', distance: 6 },
+            { source: 'EKAMRA-KSHETRA', target: 'CRPF', distance: 8 },
+            { source: 'BARAMUNDA', target: 'KHANDAGIRI', distance: 4 },
+            { source: 'KHANDAGIRI', target: 'FIRE-STATION', distance: 6 },
+            { source: 'BADAGADA', target: 'CRPF', distance: 5 },
+            { source: 'BADAGADA', target: 'VANI-VIHAR', distance: 3 },
+            { source: 'CUTTACK', target: 'CRPF', distance: 12 },
+            { source: 'CUTTACK', target: 'KHORDHA', distance: 15 },
+            { source: 'FIRE-STATION', target: 'RAM-MANDIR', distance: 7 },
+            { source: 'FIRE-STATION', target: 'GANDAPADA', distance: 10 },
+            { source: 'CRPF', target: 'VANI-VIHAR', distance: 4 },
+            { source: 'CRPF', target: 'DUMDUMA', distance: 9 },
+            { source: 'VANI-VIHAR', target: 'RAM-MANDIR', distance: 5 },
+            { source: 'VANI-VIHAR', target: 'KHORDHA', distance: 11 },
+            { source: 'RAM-MANDIR', target: 'GANDAPADA', distance: 6 },
+            { source: 'RAM-MANDIR', target: 'NACHUNI', distance: 8 },
+            { source: 'KHORDHA', target: 'TANGI', distance: 7 },
+            { source: 'KHORDHA', target: 'MENDHA-SALA', distance: 13 },
+            { source: 'GANDAPADA', target: 'NAYAGARH', distance: 9 },
+            { source: 'TANGI', target: 'NACHUNI', distance: 6 },
+            { source: 'TANGI', target: 'MENDHA-SALA', distance: 8 },
+            { source: 'NACHUNI', target: 'NAYAGARH', distance: 5 },
+            { source: 'NACHUNI', target: 'KANKADA-HADA', distance: 10 },
+            { source: 'NAYAGARH', target: 'KANKADA-HADA', distance: 7 }
+        ];
+
+        // DOM Elements
+        let svg;
+        let sourceSelect;
+        let targetSelect;
+        let calculateButton;
+        let resetButton;
+        let algorithmStepsContainer;
+        let mapContainer;
+        let tooltip;
+
+        // State variables
+        let selectedSource = null;
+        let selectedTarget = null;
+        let shortestPath = [];
+        let algorithmSteps = [];
+        let currentStepIndex = -1;
+        let animationInterval = null;
+
+        // Convert the edge list to an adjacency list for the algorithm
+        function createAdjacencyList() {
+            const graph = {};
+            
+            // Initialize empty adjacency lists for all nodes
+            for (const node of nodes) {
+                graph[node.id] = [];
+            }
+            
+            // Populate the adjacency lists with connections and distances
+            for (const edge of edges) {
+                // Add bidirectional connections (undirected graph)
+                graph[edge.source].push({ node: edge.target, distance: edge.distance });
+                graph[edge.target].push({ node: edge.source, distance: edge.distance });
+            }
+            
+            return graph;
+        }
+
+        const graph = createAdjacencyList();
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', initialize);
+
+        function initialize() {
+            // Get DOM elements
+            svg = document.getElementById('route-map');
+            sourceSelect = document.getElementById('source-select');
+            targetSelect = document.getElementById('target-select');
+            calculateButton = document.getElementById('calculate-button');
+            resetButton = document.getElementById('reset-button');
+            algorithmStepsContainer = document.getElementById('algorithm-steps');
+            mapContainer = document.getElementById('map-container');
+            tooltip = document.getElementById('tooltip');
+
+            // Draw the initial map
+            drawMap();
+            
+            // Populate dropdowns
+            populateLocationDropdowns();
+            
+            // Add event listeners
+            calculateButton.addEventListener('click', calculateShortestPath);
+            resetButton.addEventListener('click', resetMap);
+            document.getElementById('step-button').addEventListener('click', showNextStep);
+            document.getElementById('auto-button').addEventListener('click', toggleAutoPlay);
+        }
+
+        // Draw the network map with nodes and edges
+        function drawMap() {
+            // Clear existing map
+            svg.innerHTML = '';
+            
+            // Set SVG viewBox
+            svg.setAttribute('viewBox', '0 0 700 500');
+            
+            // Draw edges first so they appear beneath nodes
+            edges.forEach(edge => {
+                const sourceNode = nodes.find(n => n.id === edge.source);
+                const targetNode = nodes.find(n => n.id === edge.target);
+                
+                // Create the edge line
+                const edgeLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                edgeLine.setAttribute('x1', sourceNode.x);
+                edgeLine.setAttribute('y1', sourceNode.y);
+                edgeLine.setAttribute('x2', targetNode.x);
+                edgeLine.setAttribute('y2', targetNode.y);
+                edgeLine.setAttribute('class', 'edge');
+                edgeLine.setAttribute('data-source', edge.source);
+                edgeLine.setAttribute('data-target', edge.target);
+                svg.appendChild(edgeLine);
+                
+                // Create distance label
+                const midX = (sourceNode.x + targetNode.x) / 2;
+                const midY = (sourceNode.y + targetNode.y) / 2;
+                
+                const distanceText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                distanceText.setAttribute('x', midX);
+                distanceText.setAttribute('y', midY);
+                distanceText.setAttribute('class', 'distance-label');
+                distanceText.textContent = edge.distance;
+                
+                // Add small white background for better readability
+                const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                const padding = 6;
+                textBg.setAttribute('x', midX - padding);
+                textBg.setAttribute('y', midY - padding);
+                textBg.setAttribute('width', padding * 2 + 10);
+                textBg.setAttribute('height', padding * 2);
+                textBg.setAttribute('fill', 'white');
+                textBg.setAttribute('opacity', '0.7');
+                textBg.setAttribute('rx', '3');
+                
+                svg.appendChild(textBg);
+                svg.appendChild(distanceText);
+            });
+            
+            // Draw nodes
+            nodes.forEach(node => {
+                const nodeCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                nodeCircle.setAttribute('cx', node.x);
+                nodeCircle.setAttribute('cy', node.y);
+                nodeCircle.setAttribute('r', '10');
+                nodeCircle.setAttribute('class', 'node');
+                nodeCircle.setAttribute('data-id', node.id);
+                
+                // Add tooltip behavior
+                nodeCircle.addEventListener('mouseover', function(e) {
+                    showTooltip(e, node.id);
+                });
+                
+                nodeCircle.addEventListener('mousemove', function(e) {
+                    positionTooltip(e);
+                });
+                
+                nodeCircle.addEventListener('mouseout', function() {
+                    hideTooltip();
+                });
+                
+                nodeCircle.addEventListener('click', function() {
+                    handleNodeClick(node.id);
+                });
+                
+                svg.appendChild(nodeCircle);
+                
+                // Create and append the node label
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', node.x);
+                label.setAttribute('y', node.y + 25);
+                label.setAttribute('class', 'node-label');
+                
+                // Create a short version of the label for display
+                const shortLabel = node.id.split('-')[0].substring(0, 4);
+                label.textContent = shortLabel;
+                
+                svg.appendChild(label);
+            });
+        }
+
+        // Populate the source and destination dropdowns
+        function populateLocationDropdowns() {
+            const locations = nodes.map(node => node.id).sort();
+            
+            // Clear existing options
+            sourceSelect.innerHTML = '';
+            targetSelect.innerHTML = '';
+            
+            // Add default option
+            const sourceDefaultOption = document.createElement('option');
+            sourceDefaultOption.value = '';
+            sourceDefaultOption.textContent = 'Select source';
+            sourceSelect.appendChild(sourceDefaultOption);
+            
+            const targetDefaultOption = document.createElement('option');
+            targetDefaultOption.value = '';
+            targetDefaultOption.textContent = 'Select destination';
+            targetSelect.appendChild(targetDefaultOption);
+            
+            // Add location options
+            locations.forEach(location => {
+                const sourceOption = document.createElement('option');
+                sourceOption.value = location;
+                sourceOption.textContent = location;
+                sourceSelect.appendChild(sourceOption);
+                
+                const targetOption = document.createElement('option');
+                targetOption.value = location;
+                targetOption.textContent = location;
+                targetSelect.appendChild(targetOption);
+            });
+            
+            // Add event listeners
+            sourceSelect.addEventListener('change', function() {
+                selectedSource = this.value;
+                updateNodeSelection();
+            });
+            
+            targetSelect.addEventListener('change', function() {
+                selectedTarget = this.value;
+                updateNodeSelection();
+            });
+        }
+
+        // Handle node click
+        function handleNodeClick(nodeId) {
+            if (!selectedSource) {
+                selectedSource = nodeId;
+                sourceSelect.value = nodeId;
+            } else if (!selectedTarget) {
+                selectedTarget = nodeId;
+                targetSelect.value = nodeId;
+            } else {
+                // If both are already selected, update the source
+                selectedSource = nodeId;
+                sourceSelect.value = nodeId;
+                selectedTarget = null;
+                targetSelect.value = '';
+            }
+            
+            updateNodeSelection();
+        }
+
+        // Update the visual selection of nodes
+        function updateNodeSelection() {
+            // Reset all nodes to default
+            document.querySelectorAll('.node').forEach(node => {
+                node.classList.remove('selected');
+            });
+            
+            // Highlight selected source
+            if (selectedSource) {
+                const sourceNode = document.querySelector(`.node[data-id="${selectedSource}"]`);
+                if (sourceNode) {
+                    sourceNode.classList.add('selected');
+                }
+            }
+            
+            // Highlight selected target
+            if (selectedTarget) {
+                const targetNode = document.querySelector(`.node[data-id="${selectedTarget}"]`);
+                if (targetNode) {
+                    targetNode.classList.add('selected');
+                }
+            }
+            
+            // Enable calculate button if both source and target are selected
+            calculateButton.disabled = !(selectedSource && selectedTarget);
+        }
+
+        // Calculate shortest path using Dijkstra's algorithm
+        function calculateShortestPath() {
+            if (!selectedSource || !selectedTarget) {
+                alert('Please select both source and destination.');
+                return;
+            }
+            
+            // Reset previous results
+            resetAlgorithmSteps();
+            
+            // Run Dijkstra's algorithm
+            const { distances, previous, steps } = dijkstra(graph, selectedSource, selectedTarget);
+            
+            // Store algorithm steps for visualization
+            algorithmSteps = steps;
+            
+            // Construct the path
+            shortestPath = [];
+            let current = selectedTarget;
+            
+            if (previous[current]) {
+                while (current) {
+                    shortestPath.unshift(current);
+                    current = previous[current];
+                }
+            }
+            
+            // Display results
+            displayResults(distances[selectedTarget], shortestPath);
+            
+            // Prepare for step-by-step visualization
+            currentStepIndex = -1;
+            
+            // Enable step and auto buttons
+            document.getElementById('step-button').disabled = false;
+            document.getElementById('auto-button').disabled = false;
+        }
+
+        // Dijkstra's algorithm implementation with step recording
+        function dijkstra(graph, startNode, endNode) {
+            const nodes = Object.keys(graph);
+            const distances = {};
+            const previous = {};
+            const steps = [];
+            
+            // Initialize distances with Infinity and previous nodes with null
+            for (let node of nodes) {
+                distances[node] = Infinity;
+                previous[node] = null;
+            }
+            
+            // Distance from start node to itself is 0
+            distances[startNode] = 0;
+            
+            // Add initial state to steps
+            steps.push({
+                type: 'initialize',
+                distances: { ...distances },
+                current: startNode,
+                message: `Initialize distances. Set distance to start node "${startNode}" as 0.`
+            });
+            
+            // Create a copy of nodes to track unvisited nodes
+            const unvisited = new Set(nodes);
+            
+            while (unvisited.size > 0) {
+                // Find the unvisited node with the smallest distance
+                let current = null;
+                let smallestDistance = Infinity;
+                
+                for (let node of unvisited) {
+                    if (distances[node] < smallestDistance) {
+                        smallestDistance = distances[node];
+                        current = node;
+                    }
+                }
+                
+                // If the smallest distance is infinity, there are unreachable nodes
+                if (smallestDistance === Infinity) {
+                    steps.push({
+                        type: 'unreachable',
+                        message: 'Remaining nodes are unreachable from the source node.'
+                    });
+                    break;
+                }
+                
+                // If we reached the end node, we can stop the algorithm
+                if (current === endNode) {
+                    steps.push({
+                        type: 'target-reached',
+                        current,
+                        message: `Target node "${endNode}" reached with distance ${distances[current]}.`
+                    });
+                    break;
+                }
+                
+                // Record the current node selection
+                steps.push({
+                    type: 'select-node',
+                    current,
+                    message: `Select node "${current}" with current distance ${distances[current]}.`
+                });
+                
+                // Mark the current node as visited
+                unvisited.delete(current);
+                
+                // Check all neighbors of the current node
+                for (let { node: neighbor, distance } of graph[current]) {
+                    // Skip if neighbor is already visited
+                    if (!unvisited.has(neighbor)) continue;
+                    
+                    // Calculate new distance to neighbor
+                    const newDistance = distances[current] + distance;
+                    
+                    // Record the edge analysis
+                    steps.push({
+                        type: 'check-edge',
+                        from: current,
+                        to: neighbor,
+                        currentDistance: distances[neighbor],
+                        newDistance,
+                        message: `Check edge ${current} → ${neighbor}. Current distance: ${distances[neighbor]}, New distance: ${newDistance}.`
+                    });
+                    
+                    // If we found a shorter path to the neighbor
+                    if (newDistance < distances[neighbor]) {
+                        // Update the distance and previous node
+                        distances[neighbor] = newDistance;
+                        previous[neighbor] = current;
+                        
+                        steps.push({
+                            type: 'update-distance',
+                            node: neighbor,
+                            from: current,
+                            distance: newDistance,
+                            message: `Update distance to "${neighbor}" to ${newDistance} via "${current}".`
+                        });
+                    } else {
+                        steps.push({
+                            type: 'no-update',
+                            message: `Keep current distance to "${neighbor}" as ${distances[neighbor]}, new path not shorter.`
+                        });
+                    }
+                }
+            }
+            
+            return { distances, previous, steps };
+        }
+
+        // Display the results
+        function displayResults(totalDistance, path) {
+            // Display path and distance in the results panel
+            const resultsEl = document.getElementById('results');
+            
+            if (path.length <= 1) {
+                resultsEl.innerHTML = `<p>No path found from ${selectedSource} to ${selectedTarget}.</p>`;
+                return;
+            }
+            
+            resultsEl.innerHTML = `
+                <h3>Shortest Path:</h3>
+                <p>${path.join(' → ')}</p>
+                <h3>Total Distance:</h3>
+                <p>${totalDistance} km</p>
+            `;
+            
+            // Reset the map visualization
+            resetPathVisuals();
+        }
+
+        // Show the next algorithm step
+        function showNextStep() {
+            if (algorithmSteps.length === 0) return;
+            
+            currentStepIndex++;
+            
+            if (currentStepIndex >= algorithmSteps.length) {
+                currentStepIndex = algorithmSteps.length - 1;
+                return;
+            }
+            
+            visualizeStep(currentStepIndex);
+        }
+
+        // Visualize a specific algorithm step
+        function visualizeStep(stepIndex) {
+            const step = algorithmSteps[stepIndex];
+            
+            // Update algorithm steps display
+            updateAlgorithmStepsDisplay(stepIndex);
+            
+            // Update map visualization based on step type
+            switch (step.type) {
+                case 'select-node':
+                    highlightNode(step.current);
+                    break;
+                case 'check-edge':
+                    highlightEdge(step.from, step.to);
+                    break;
+                case 'update-distance':
+                    highlightEdge(step.from, step.node, true);
+                    break;
+                case 'target-reached':
+                    visualizeFinalPath();
+                    break;
+            }
+        }
+
+        // Update the algorithm steps display
+        function updateAlgorithmStepsDisplay(currentIndex) {
+            algorithmStepsContainer.innerHTML = '';
+            
+            for (let i = 0; i <= currentIndex; i++) {
+                const step = algorithmSteps[i];
+                const stepElement = document.createElement('div');
+                stepElement.className = 'algorithm-step';
+                
+                if (i === currentIndex) {
+                    stepElement.classList.add('current-step');
+                }
+                
+                stepElement.textContent = step.message;
+                algorithmStepsContainer.appendChild(stepElement);
+            }
+            
+            // Scroll to the bottom of the container
+            algorithmStepsContainer.scrollTop = algorithmStepsContainer.scrollHeight;
+        }
+
+        // Highlight a node in the visualization
+        function highlightNode(nodeId) {
+            // Reset previous highlights
+            resetNodeHighlights();
+            
+            // Highlight the selected node
+            const nodeElement = document.querySelector(`.node[data-id="${nodeId}"]`);
+            if (nodeElement) {
+                nodeElement.classList.add('path');
+            }
+        }
+
+        // Highlight an edge in the visualization
+        function highlightEdge(source, target, isPathEdge = false) {
+            // Reset edge highlights if it's a new path edge
+            if (isPathEdge) {
+                resetEdgeHighlights();
+            }
+            
+            // Find and highlight the edge
+            const edgeElement = document.querySelector(`.edge[data-source="${source}"][data-target="${target}"], .edge[data-source="${target}"][data-target="${source}"]`);
+            
+            if (edgeElement) {
+                edgeElement.classList.add(isPathEdge ? 'path' : 'highlight');
+            }
+        }
+
+        // Reset node highlights
+        function resetNodeHighlights() {
+            document.querySelectorAll('.node').forEach(node => {
+                if (!node.classList.contains('selected')) {
+                    node.classList.remove('path');
+                }
+            });
+        }
+
+        // Reset edge highlights
+        function resetEdgeHighlights() {
+            document.querySelectorAll('.edge').forEach(edge => {
+                edge.classList.remove('highlight');
+            });
+        }
+
+        // Visualize the final path
+        function visualizeFinalPath() {
+            resetPathVisuals();
+            
+            // Highlight path nodes
+            for (const nodeId of shortestPath) {
+                const nodeElement = document.querySelector(`.node[data-id="${nodeId}"]`);
+                if (nodeElement) {
+                    nodeElement.classList.add('path');
+                }
+            }
+            
+            // Highlight path edges
+            for (let i = 0; i < shortestPath.length - 1; i++) {
+                const source = shortestPath[i];
+                const target = shortestPath[i + 1];
+                
+                const edgeElement = document.querySelector(`.edge[data-source="${source}"][data-target="${target}"], .edge[data-source="${target}"][data-target="${source}"]`);
+                
+                if (edgeElement) {
+                    edgeElement.classList.add('path');
+                }
+            }
+        }
+
+        // Reset path visuals
+        function resetPathVisuals() {
+            document.querySelectorAll('.node').forEach(node => {
+                node.classList.remove('path');
+            });
+            
+            document.querySelectorAll('.edge').forEach(edge => {
+                edge.classList.remove('path', 'highlight');
+            });
+        }
+
+        // Toggle auto-play animation
+        function toggleAutoPlay() {
+            const autoButton = document.getElementById('auto-button');
+            
+            if (animationInterval) {
+                // Stop auto-play
+                clearInterval(animationInterval);
+                animationInterval = null;
+                autoButton.textContent = 'Auto Play';
+            } else {
+                // Start auto-play
+                autoButton.textContent = 'Stop';
+                animationInterval = setInterval(() => {
+                    if (currentStepIndex >= algorithmSteps.length - 1) {
+                        clearInterval(animationInterval);
+                        animationInterval = null;
+                        autoButton.textContent = 'Auto Play';
+                        return;
+                    }
+                    showNextStep();
+                }, 1000);
+            }
+        }
+
+        // Reset the map and algorithm steps
+        function resetMap() {
+            // Clear path and selections
+            selectedSource = null;
+            selectedTarget = null;
+            shortestPath = [];
+            
+            // Reset dropdowns
+            sourceSelect.value = '';
+            targetSelect.value = '';
+            
+            // Reset button states
+            calculateButton.disabled = true;
+            document.getElementById('step-button').disabled = true;
+            document.getElementById('auto-button').disabled = true;
+            
+            // Stop auto-play if running
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+                document.getElementById('auto-button').textContent = 'Auto Play';
+            }
+            
+            // Clear results
+            document.getElementById('results').innerHTML = '';
+            
+            // Clear algorithm steps
+            resetAlgorithmSteps();
+            
+            // Redraw the map
+            drawMap();
+        }
+
+        // Reset algorithm steps
+        function resetAlgorithmSteps() {
+            algorithmSteps = [];
+            currentStepIndex = -1;
+            algorithmStepsContainer.innerHTML = '';
+        }
+
+        // Show tooltip
+        function showTooltip(event, content) {
+            tooltip.textContent = content;
+            tooltip.classList.add('visible');
+            positionTooltip(event);
+        }
+
+        // Position tooltip near the cursor
+        function positionTooltip(event) {
+            const rect = mapContainer.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            tooltip.style.left = `${x + 15}px`;
+            tooltip.style.top = `${y + 15}px`;
+        }
+
+        // Hide tooltip
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+    </script>
+</body>
+</html>
