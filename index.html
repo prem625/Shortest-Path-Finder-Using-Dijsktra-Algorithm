@@ -363,24 +363,24 @@
     <script>
         // Nodes (locations) and edges (connections between locations) for Odisha route planning
         const nodes = [
-            { id: 'MASTER-CANTEEN', x: 300, y: 200 },
+            { id: 'MASTER-CANTEEN', x: 300, y: 180 },
             { id: 'EKAMRA-KSHETRA', x: 400, y: 150 },
-            { id: 'BARAMUNDA', x: 200, y: 150 },
+            { id: 'BARAMUNDA', x: 200, y: 130 },
             { id: 'KHANDAGIRI', x: 150, y: 200 },
-            { id: 'BADAGADA', x: 350, y: 250 },
-            { id: 'CUTTACK', x: 500, y: 200 },
+            { id: 'BADAGADA', x: 350, y: 230 },
+            { id: 'CUTTACK', x: 510, y: 200 },
             { id: 'FIRE-STATION', x: 250, y: 250 },
             { id: 'CRPF', x: 450, y: 250 },
             { id: 'VANI-VIHAR', x: 400, y: 300 },
             { id: 'RAM-MANDIR', x: 300, y: 350 },
-            { id: 'KHORDHA', x: 500, y: 350 },
-            { id: 'GANDAPADA', x: 200, y: 350 },
+            { id: 'KHORDHA', x: 520, y: 350 },
+            { id: 'GANDAPADA', x: 170, y: 350 },
             { id: 'TANGI', x: 450, y: 400 },
             { id: 'NACHUNI', x: 350, y: 450 },
             { id: 'NAYAGARH', x: 250, y: 400 },
             { id: 'KANKADA-HADA', x: 150, y: 450 },
             { id: 'MENDHA-SALA', x: 550, y: 450 },
-            { id: 'DUMDUMA', x: 450, y: 150 }
+            { id: 'DUMDUMA', x: 480, y: 100 }
         ];
 
         // Edges with distances (in km)
@@ -563,11 +563,10 @@
                 label.setAttribute('x', node.x);
                 label.setAttribute('y', node.y + 25);
                 label.setAttribute('class', 'node-label');
-                
-                // Create a short version of the label for display
-                const shortLabel = node.id.split('-')[0].substring(0, 4);
-                label.textContent = shortLabel;
-                
+
+                // Use the full name of the node for the label
+                label.textContent = node.id;
+
                 svg.appendChild(label);
             });
         }
